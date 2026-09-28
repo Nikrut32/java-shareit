@@ -1,0 +1,19 @@
+DROP TABLE IF EXISTS items;
+DROP TABLE IF EXISTS users;
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR NOT NULL,
+    email VARCHAR NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR NOT NULL,
+    description VARCHAR NOT NULL,
+    available BOOLEAN NOT NULL,
+    owner_id INTEGER,
+    request_id INTEGER,
+    count_rental INTEGER DEFAULT 0 NOT NULL,
+    CONSTRAINT items_users_fk FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
+);
