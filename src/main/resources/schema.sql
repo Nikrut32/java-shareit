@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS items (
     description VARCHAR(255) NOT NULL,
     available BOOLEAN NOT NULL,
     owner_id BIGINT,
-    request_id BIGINT,
+    request_id BIGINT DEFAULT 0 NOT NULL,
     count_rental INT DEFAULT 0 NOT NULL,
     CONSTRAINT items_users_fk FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
 );

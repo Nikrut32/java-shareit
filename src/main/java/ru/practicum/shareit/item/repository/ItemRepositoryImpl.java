@@ -1,10 +1,12 @@
 package ru.practicum.shareit.item.repository;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.base.BaseRepository;
 import ru.practicum.shareit.exception.ValidationNotObjectException;
+import ru.practicum.shareit.item.dal.mappers.ItemMapper;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 
@@ -14,6 +16,9 @@ import java.util.stream.Collectors;
 
 @Repository
 public class ItemRepositoryImpl extends BaseRepository<Item> implements ItemRepository {
+    @Autowired
+    private ItemMapper itemMapper;
+
     public ItemRepositoryImpl(JdbcTemplate jdbc, RowMapper<Item> rowMapper) {
         super(jdbc, rowMapper);
     }
@@ -50,23 +55,11 @@ public class ItemRepositoryImpl extends BaseRepository<Item> implements ItemRepo
                 .collect(Collectors.toList());
     }
 
-    private boolean checkItem(long itemId) {
-        return findByOne(GET_BY_ID_QUERY, itemId).isPresent();
-    }
-
     @Override
     public Item createItem(ItemDto item, Long ownerId, Long requestId) {
         long id = insert(INSERT_QuERY, item.getName(), item.getDescription(), item.getAvailable(), ownerId, requestId);
-
-        return Item.builder()
-                .id(id)
-                .name(item.getName())
-                .description(item.getDescription())
-                .available(item.getAvailable())
-                .ownerId(ownerId)
-                .requestId(requestId)
-                .countRental(0L)
-                .build();
+        item.setId(id);
+        return itemMapper.toEntity(item, ownerId, requestId);
     }
 
     @Override
@@ -85,9 +78,13 @@ public class ItemRepositoryImpl extends BaseRepository<Item> implements ItemRepo
     public boolean checkOwner(long itemId, long ownerId) {
         if (checkItem(itemId)) {
             Item item = findByOne(GET_BY_ID_QUERY, itemId).get();
-            return  item.getOwnerId() == ownerId;
+            return  item.getOwner().getId() == ownerId;
         } else {
             throw new ValidationNotObjectException("Предмет с id: " + itemId + " не найден");
         }
+    }
+
+    private boolean checkItem(long itemId) {
+        return findByOne(GET_BY_ID_QUERY, itemId).isPresent();
     }
 }

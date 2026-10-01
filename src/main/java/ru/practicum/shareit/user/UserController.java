@@ -33,21 +33,21 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public User findById(@PathVariable long id) {
+    public UserDto findById(@PathVariable long id) {
         log.info("Получен запрос GET /users/{id}} с параметром id={}", id);
         return userRepository.getUserById(id);
     }
 
     @PostMapping
-    public User createUser(@RequestBody @Valid User user) {
+    public UserDto createUser(@RequestBody @Valid User user) {
         log.info("Получен запрос POST /users на создание пользователя: {}", user);
-        User createdUser = userService.createUser(user);
+        UserDto createdUser = userService.createUser(user);
         log.info("Пользователь успешно создан с id={}: {}", createdUser.getId(), createdUser.getName());
         return createdUser;
     }
 
     @PatchMapping("/{id}")
-    public User updateUser(@PathVariable long id, @RequestBody UpdateUserRequest updateUser) {
+    public UserDto updateUser(@PathVariable long id, @RequestBody UpdateUserRequest updateUser) {
         log.info("Получен запрос PATCH /users на обновление пользователя с id={}", id);
         return userService.updateUser(id, updateUser);
     }

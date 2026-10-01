@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.AccessException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.exception.ValidationNotObjectException;
+import ru.practicum.shareit.item.dal.mappers.ItemMapper;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.UpdateItemRequest;
 import ru.practicum.shareit.item.model.Item;
@@ -22,16 +23,12 @@ import java.util.stream.Collectors;
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final ItemMapper itemMapper;
 
     @Override
     public List<ItemDto> getAllItems(long ownerId) {
         return itemRepository.getAllItems(ownerId).stream()
-                .map(item -> ItemDto.builder().id(item.getId())
-                        .name(item.getName())
-                        .description(item.getDescription())
-                        .available(item.getAvailable())
-                        .countRental(item.getCountRental())
-                        .build())
+                .map(itemMapper::mapToDto)
                 .collect(Collectors.toList());
     }
 
@@ -42,12 +39,7 @@ public class ItemServiceImpl implements ItemService {
         }
 
         return itemRepository.getItemSearchText(searchText).stream()
-                .map(item -> ItemDto.builder().id(item.getId())
-                        .name(item.getName())
-                        .description(item.getDescription())
-                        .available(item.getAvailable())
-                        .countRental(item.getCountRental())
-                        .build())
+                .map(itemMapper::mapToDto)
                 .collect(Collectors.toList());
     }
 
@@ -58,15 +50,10 @@ public class ItemServiceImpl implements ItemService {
         }
 
         Item item = itemRepository.getItemById(itemId);
-        if (ownerId == item.getOwnerId()) {
+        if (ownerId == item.getOwner().getId()) {
             return item;
         } else  {
-            return ItemDto.builder()
-                    .id(item.getId())
-                    .name(item.getName())
-                    .description(item.getDescription())
-                    .countRental(item.getCountRental())
-                    .build();
+            return itemMapper.mapToDto(item);
         }
     }
 
@@ -77,7 +64,7 @@ public class ItemServiceImpl implements ItemService {
             throw new ValidationNotObjectException("Ваш пользователь не зарегистрирован");
         }
 
-        return itemRepository.createItem(itemDto, ownerId, null);
+        return itemRepository.createItem(itemDto, ownerId, 0L);
     }
 
     @Override
@@ -89,13 +76,7 @@ public class ItemServiceImpl implements ItemService {
             throw new AccessException("Редактировать запись, может только владелец");
         }
         Item item = itemRepository.getItemById(itemId);
-        ItemDto itemDto = ItemDto.builder()
-                .id(itemId)
-                .name(item.getName())
-                .description(item.getDescription())
-                .countRental(item.getCountRental())
-                .available(item.getAvailable())
-                .build();
+        ItemDto itemDto = itemMapper.mapToDto(item);
         if (updateItem.hasName()) {
             itemDto.setName(updateItem.getName());
         }

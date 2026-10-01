@@ -2,6 +2,8 @@ package ru.practicum.shareit.item.model;
 
 import lombok.Builder;
 import lombok.Data;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.user.dto.UserDto;
 
 @Data
 @Builder
@@ -10,7 +12,7 @@ public class Item implements ItemResponse {
     private String name;
     private String description;
     private Boolean available;
-    private Long ownerId;
-    private Long requestId;
+    private UserDto owner;
+    private ItemRequest request;
     private Long countRental;
 }

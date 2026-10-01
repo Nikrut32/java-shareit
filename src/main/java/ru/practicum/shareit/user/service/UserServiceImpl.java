@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.ValidationException;
+import ru.practicum.shareit.user.dal.mappers.UserMapper;
 import ru.practicum.shareit.user.dto.UpdateUserRequest;
+import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -14,16 +16,17 @@ import ru.practicum.shareit.user.repository.UserRepository;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     @Override
-    public User createUser(User user) {
+    public UserDto createUser(User user) {
         exceptionUser(user);
         return userRepository.createUser(user);
     }
 
     @Override
-    public User updateUser(long id, UpdateUserRequest updateUser) {
-        User user = userRepository.getUserById(id);
+    public UserDto updateUser(long id, UpdateUserRequest updateUser) {
+        User user = userMapper.toEntity(userRepository.getUserById(id));
         if (updateUser.hasName()) {
             user.setName(updateUser.getName());
         }
