@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.base.BaseStringResponse;
+import ru.practicum.shareit.exception.ValidationNotObjectException;
+import ru.practicum.shareit.user.dal.mappers.UserMapper;
 import ru.practicum.shareit.user.dto.UpdateUserRequest;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
@@ -22,11 +24,12 @@ public class UserController {
 
     private final UserService userService;
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     @GetMapping
     public List<UserDto> findAll() {
         log.info("Получен запрос GET /users.");
-        return userRepository.getAllUsers().stream().map(us -> {
+        return userRepository.findAll().stream().map(us -> {
             return UserDto.builder().id(us.getId()).name(us.getName()).build();
         })
                 .collect(Collectors.toList());
@@ -35,7 +38,8 @@ public class UserController {
     @GetMapping("/{id}")
     public UserDto findById(@PathVariable long id) {
         log.info("Получен запрос GET /users/{id}} с параметром id={}", id);
-        return userRepository.getUserById(id);
+        return userMapper.toDto(userRepository.findById(id)
+                .orElseThrow(() -> new ValidationNotObjectException("Пользователем с id: " + id + " не найден")));
     }
 
     @PostMapping
@@ -55,7 +59,7 @@ public class UserController {
     @DeleteMapping("/{id}")
     public BaseStringResponse deleteUser(@PathVariable long id) {
         log.info("Получен запрос DELETE /users/{} на удаление пользователя", id);
-        userRepository.deleteUser(id);
+        userRepository.deleteById(id);
         log.info("Пользователь с id={} успешно удален", id);
         return new BaseStringResponse("Пользователь с id: " + id + " успешно удален");
     }
