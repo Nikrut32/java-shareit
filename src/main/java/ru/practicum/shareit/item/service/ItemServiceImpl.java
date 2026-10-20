@@ -8,9 +8,10 @@ import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.exception.ValidationNotObjectException;
 import ru.practicum.shareit.item.dal.mappers.ItemMapper;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemTimeDto;
 import ru.practicum.shareit.item.dto.UpdateItemRequest;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.model.ItemResponse;
+import ru.practicum.shareit.item.dto.ItemResponse;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -26,9 +27,9 @@ public class ItemServiceImpl implements ItemService {
     private final ItemMapper itemMapper;
 
     @Override
-    public List<ItemDto> getAllItems(long ownerId) {
-        return itemRepository.getAllItems(ownerId).stream()
-                .map(itemMapper::mapToDto)
+    public List<ItemTimeDto> getAllItems(long ownerId) {
+        return itemRepository.findByOwnerId(ownerId).stream()
+                .map(itemMapper::mapToTimeDto)
                 .collect(Collectors.toList());
     }
 
@@ -37,67 +38,78 @@ public class ItemServiceImpl implements ItemService {
         if  (searchText == null || searchText.isEmpty()) {
             return List.of();
         }
-
-        return itemRepository.getItemSearchText(searchText).stream()
+        return itemRepository.findAll().stream()
+                .filter(item -> (item.getDescription().toLowerCase().contains(searchText.toLowerCase())
+                        || item.getName().toLowerCase().contains(searchText.toLowerCase())) && item.getAvailable())
                 .map(itemMapper::mapToDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public ItemResponse getItemById(long itemId, long ownerId) {
-        if (!userRepository.checkUserById(ownerId)) {
+        if (!userRepository.existsById(ownerId)) {
             throw new ValidationNotObjectException("Ваш пользователь не зарегистрирован");
         }
 
-        Item item = itemRepository.getItemById(itemId);
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new ValidationNotObjectException("Предмет с id: " + itemId + " не найден"));
         if (ownerId == item.getOwner().getId()) {
-            return item;
+            return itemMapper.mapToCreateDto(item);
         } else  {
-            return itemMapper.mapToDto(item);
+            return itemMapper.mapToTimeDto(item);
         }
     }
 
     @Override
     public Item createItem(ItemDto itemDto, Long ownerId) {
         exceptionItem(itemDto);
-        if (!userRepository.checkUserById(ownerId)) {
+        if (!userRepository.existsById(ownerId)) {
             throw new ValidationNotObjectException("Ваш пользователь не зарегистрирован");
         }
 
-        return itemRepository.createItem(itemDto, ownerId, 0L);
+        Item item = itemMapper.toEntity(itemDto, ownerId, null);
+
+        return itemRepository.save(item);
     }
 
     @Override
     public ItemDto updateItem(UpdateItemRequest updateItem, long itemId, Long ownerId) {
-        if (!userRepository.checkUserById(ownerId)) {
+        if (!userRepository.existsById(ownerId)) {
             throw new ValidationNotObjectException("Ваш пользователь не зарегистрирован");
         }
-        if (!itemRepository.checkOwner(itemId, ownerId)) {
+        if (!itemRepository.existsByIdAndOwnerId(itemId, ownerId)) {
             throw new AccessException("Редактировать запись, может только владелец");
         }
-        Item item = itemRepository.getItemById(itemId);
-        ItemDto itemDto = itemMapper.mapToDto(item);
+        Item item = itemRepository.getReferenceById(itemId);
         if (updateItem.hasName()) {
-            itemDto.setName(updateItem.getName());
+            item.setName(updateItem.getName());
         }
         if (updateItem.hasDescription()) {
-            itemDto.setDescription(updateItem.getDescription());
+            item.setDescription(updateItem.getDescription());
         }
         if (updateItem.hasAvailable()) {
-            itemDto.setAvailable(updateItem.getAvailable());
+            item.setAvailable(updateItem.getAvailable());
         }
-        return itemRepository.updateItem(itemDto);
+        return itemMapper.mapToDto(itemRepository.save(item));
     }
 
     @Override
     public void deleteItem(long itemId, Long ownerId) {
-        if (!userRepository.checkUserById(ownerId)) {
+        if (!userRepository.existsById(ownerId)) {
             throw new ValidationNotObjectException("Ваш пользователь не зарегистрирован");
         }
-        if (!itemRepository.checkOwner(itemId, ownerId)) {
+        if (itemRepository.existsByIdAndOwnerId(itemId, ownerId)) {
             throw new AccessException("Удалять запись может только владелец");
         }
-        itemRepository.deleteItem(itemId);
+        itemRepository.deleteById(itemId);
+    }
+
+    @Override
+    public void increaseRental(long itemId) {
+        Item item = itemRepository.getReferenceById(itemId);
+        Long currentCount = item.getCountRental();
+        item.setCountRental(currentCount == null ? 1L : currentCount + 1);
+        itemRepository.save(item);
     }
 
     private void exceptionItem(ItemDto item) {

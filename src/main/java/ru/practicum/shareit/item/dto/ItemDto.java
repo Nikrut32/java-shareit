@@ -2,7 +2,8 @@ package ru.practicum.shareit.item.dto;
 
 import lombok.Builder;
 import lombok.Data;
-import ru.practicum.shareit.item.model.ItemResponse;
+
+import java.util.List;
 
 @Data
 @Builder
@@ -12,4 +13,5 @@ public class ItemDto implements ItemResponse {
     private String description;
     private Boolean available;
     private Long countRental;
+    private List<CommentDto> comments;
 }

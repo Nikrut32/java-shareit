@@ -21,19 +21,19 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto createUser(User user) {
         exceptionUser(user);
-        return userRepository.createUser(user);
+        return userMapper.toDto(userRepository.save(user));
     }
 
     @Override
     public UserDto updateUser(long id, UpdateUserRequest updateUser) {
-        User user = userMapper.toEntity(userRepository.getUserById(id));
+        User user = userRepository.getReferenceById(id);
         if (updateUser.hasName()) {
             user.setName(updateUser.getName());
         }
         if (updateUser.hasEmail()) {
             user.setEmail(updateUser.getEmail());
         }
-        return userRepository.updateUser(user);
+        return userMapper.toDto(userRepository.save(user));
     }
 
     private void exceptionUser(User user) {

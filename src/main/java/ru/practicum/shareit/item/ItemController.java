@@ -4,11 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.base.BaseStringResponse;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.UpdateItemRequest;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.model.ItemResponse;
+import ru.practicum.shareit.item.dal.mappers.ItemMapper;
+import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.item.service.CommentService;
 import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.List;
@@ -20,9 +19,11 @@ import java.util.List;
 public class ItemController {
     private final ItemService itemService;
     private final ItemRepository itemRepository;
+    private final ItemMapper itemMapper;
+    private final CommentService commentService;
 
     @GetMapping
-    public List<ItemDto> getItems(@RequestHeader("X-Sharer-User-Id") long ownerId) {
+    public List<ItemTimeDto> getItems(@RequestHeader("X-Sharer-User-Id") long ownerId) {
         log.info("Получен запрос GET /items, для пользователя с id={}", ownerId);
         return itemService.getAllItems(ownerId);
     }
@@ -40,9 +41,16 @@ public class ItemController {
     }
 
     @PostMapping
-    public Item createItem(@RequestHeader("X-Sharer-User-Id") long ownerId, @RequestBody ItemDto itemDto) {
+    public ItemCreateDto createItem(@RequestHeader("X-Sharer-User-Id") long ownerId, @RequestBody ItemDto itemDto) {
         log.info("Получен запрос POST /items, от пользователя с id={}", ownerId);
-        return itemService.createItem(itemDto, ownerId);
+        return itemMapper.mapToCreateDto(itemService.createItem(itemDto, ownerId));
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentDto createComment(@RequestHeader("X-Sharer-User-Id") long bookerId,
+                                    @RequestBody CommentCreateDto commentCreate,
+                                    @PathVariable long itemId) {
+        return commentService.createComment(commentCreate, bookerId, itemId);
     }
 
     @PatchMapping("/{id}")
