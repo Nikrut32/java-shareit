@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final ItemMapper itemMapper;
 
+    @Transactional
     @Override
     public List<ItemTimeDto> getAllItems(long ownerId) {
         return itemRepository.findByOwnerId(ownerId).stream()
@@ -33,6 +35,7 @@ public class ItemServiceImpl implements ItemService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public List<ItemDto> getItemSearchText(String searchText) {
         if  (searchText == null || searchText.isEmpty()) {
@@ -45,6 +48,7 @@ public class ItemServiceImpl implements ItemService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public ItemResponse getItemById(long itemId, long ownerId) {
         if (!userRepository.existsById(ownerId)) {
@@ -60,6 +64,7 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
+    @Transactional
     @Override
     public Item createItem(ItemDto itemDto, Long ownerId) {
         exceptionItem(itemDto);
@@ -72,6 +77,7 @@ public class ItemServiceImpl implements ItemService {
         return itemRepository.save(item);
     }
 
+    @Transactional
     @Override
     public ItemDto updateItem(UpdateItemRequest updateItem, long itemId, Long ownerId) {
         if (!userRepository.existsById(ownerId)) {
@@ -93,6 +99,7 @@ public class ItemServiceImpl implements ItemService {
         return itemMapper.mapToDto(itemRepository.save(item));
     }
 
+    @Transactional
     @Override
     public void deleteItem(long itemId, Long ownerId) {
         if (!userRepository.existsById(ownerId)) {
@@ -104,6 +111,7 @@ public class ItemServiceImpl implements ItemService {
         itemRepository.deleteById(itemId);
     }
 
+    @Transactional
     @Override
     public void increaseRental(long itemId) {
         Item item = itemRepository.getReferenceById(itemId);
@@ -112,6 +120,7 @@ public class ItemServiceImpl implements ItemService {
         itemRepository.save(item);
     }
 
+    @Transactional
     private void exceptionItem(ItemDto item) {
         if (item.getName() == null) {
             log.warn("Валидация не пройдена: название не было указан");

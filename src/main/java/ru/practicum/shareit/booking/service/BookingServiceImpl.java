@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dal.mappers.BookingMapper;
@@ -29,6 +30,7 @@ public class BookingServiceImpl implements BookingService {
     private final ItemRepository itemRepository;
     private final ItemService itemService;
 
+    @Transactional
     @Override
     public BookingDto updateStatus(boolean status, Long bookingId, Long ownerId) {
         if (!bookingRepository.existsById(bookingId)) {
@@ -52,6 +54,7 @@ public class BookingServiceImpl implements BookingService {
         return  bookingMapper.toDto(booking);
     }
 
+    @Transactional
     @Override
     public BookingDto createBooking(Long tenantId, BookingCreateDto bookingCreate) {
         checkBooking(tenantId, bookingCreate);
@@ -61,6 +64,7 @@ public class BookingServiceImpl implements BookingService {
         return bookingMapper.toDto(bookingRepository.save(booking));
     }
 
+    @Transactional
     @Override
     public BookingDto getBookingById(Long bookingId, Long userId) {
         if (!bookingRepository.existsById(bookingId)) {
@@ -79,6 +83,7 @@ public class BookingServiceImpl implements BookingService {
         return  bookingMapper.toDto(bookingRepository.getReferenceById(bookingId));
     }
 
+    @Transactional
     @Override
     public List<BookingDto> getBookingsByBookerId(Long bookerId, RequestStatus status) {
         if (!userRepository.existsById(bookerId)) {
@@ -94,6 +99,7 @@ public class BookingServiceImpl implements BookingService {
         return checkStatus(bookings, status);
     }
 
+    @Transactional
     @Override
     public List<BookingDto> getBookingsByOwnerId(Long ownerId, RequestStatus status) {
         if (!userRepository.existsById(ownerId)) {
@@ -113,6 +119,7 @@ public class BookingServiceImpl implements BookingService {
         return checkStatus(bookings, status);
     }
 
+    @Transactional
     private List<BookingDto> checkStatus(List<BookingDto> bookings, RequestStatus status) {
         return switch (status) {
             case ALL -> bookings;
@@ -135,6 +142,7 @@ public class BookingServiceImpl implements BookingService {
         };
     }
 
+    @Transactional
     private void checkBooking(Long tenantId, BookingCreateDto bookingCreate) {
         if (!userRepository.existsById(tenantId)) {
             throw new ValidationNotObjectException("Ваш пользователь не зарегистрирован");

@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.model.Booking;
@@ -27,6 +28,7 @@ public class CommentServiceImpl implements CommentService {
     private final ItemRepository itemRepository;
     private final BookingRepository bookingRepository;
 
+    @Transactional
     @Override
     public CommentDto createComment(CommentCreateDto commentCreate, long bookerId, long itemId) {
         Comment comment = commentMapper.toEntityCreate(commentCreate,
@@ -36,8 +38,8 @@ public class CommentServiceImpl implements CommentService {
                         .orElseThrow(() -> new ValidationNotObjectException("Такого предмета не существует")));
 
         List<Booking> bookingsItem = bookingRepository.findAll().stream()
-                .filter(booking -> booking.getItem().getId() == itemId
-                    && booking.getBooker().getId() == bookerId
+                .filter(booking -> booking.getItem().getId().equals(itemId)
+                    && booking.getBooker().getId().equals(bookerId)
                     && booking.getStatus() == Status.APPROVED
                     && booking.getEnd().isBefore(LocalDateTime.now()))
                 .toList();

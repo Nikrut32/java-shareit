@@ -1,5 +1,6 @@
 package ru.practicum.shareit.user.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,12 +19,14 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
+    @Transactional
     @Override
     public UserDto createUser(User user) {
         exceptionUser(user);
         return userMapper.toDto(userRepository.save(user));
     }
 
+    @Transactional
     @Override
     public UserDto updateUser(long id, UpdateUserRequest updateUser) {
         User user = userRepository.getReferenceById(id);
@@ -36,6 +39,7 @@ public class UserServiceImpl implements UserService {
         return userMapper.toDto(userRepository.save(user));
     }
 
+    @Transactional
     private void exceptionUser(User user) {
         if (user.getName() == null) {
             log.warn("Валидация не пройдена: логин не был указан");

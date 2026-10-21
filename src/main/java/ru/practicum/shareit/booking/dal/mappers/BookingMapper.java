@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking.dal.mappers;
 
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
@@ -17,6 +18,7 @@ public class BookingMapper {
     @Autowired
     private ItemRepository itemRepository;
 
+    @Transactional
     public BookingDto toDto(Booking booking) {
         if (booking == null) {
             return null;
@@ -38,6 +40,7 @@ public class BookingMapper {
                 .build();
     }
 
+    @Transactional
     public Booking toEntity(BookingDto bookingDto) {
         if (bookingDto == null) {
             return null;
@@ -53,6 +56,7 @@ public class BookingMapper {
                 .build();
     }
 
+    @Transactional
     public Booking toEntityCreate(BookingCreateDto bookingCreateDto, Long tenantId) {
         if (bookingCreateDto == null) {
             return null;

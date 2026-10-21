@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item.dal.mappers;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.item.dto.CommentCreateDto;
@@ -12,6 +13,7 @@ import ru.practicum.shareit.user.model.User;
 @RequiredArgsConstructor
 public class CommentMapper {
 
+    @Transactional
     public CommentDto toDto(Comment comment) {
         return CommentDto.builder()
                 .id(comment.getId())
@@ -25,6 +27,7 @@ public class CommentMapper {
                 .build();
     }
 
+    @Transactional
     public Comment toEntityCreate(CommentCreateDto dto, User booker, Item item) {
         return Comment.builder()
                 .id(dto.getId())

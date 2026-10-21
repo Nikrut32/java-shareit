@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item.dal.mappers;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -12,6 +13,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.dal.mappers.UserMapper;
 import ru.practicum.shareit.user.repository.UserRepository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -26,6 +28,7 @@ public class ItemMapper {
     @Autowired
     private UserMapper userMapper;
 
+    @Transactional
     public ItemDto mapToDto(Item item) {
         if  (item == null) {
             return null;
@@ -41,6 +44,7 @@ public class ItemMapper {
                 .build();
     }
 
+    @Transactional
     public ItemCreateDto mapToCreateDto(Item item) {
         if (item == null) {
             return null;
@@ -57,32 +61,36 @@ public class ItemMapper {
                 .build();
     }
 
+    @Transactional
     public ItemTimeDto mapToTimeDto(Item item) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime nextTime = null;
-        LocalDateTime lastTime = null;;
+        LocalDate now = LocalDate.now();
+        LocalDate nextTime = null;
+        LocalDate lastTime = null;;
+        List<Booking> bookings = bookingRepository.findAll();
 
-        List<LocalDateTime> itemBookingTimeStart = bookingRepository.findAll().stream()
+        List<LocalDate> itemBookingTimeStart = bookings.stream()
                 .filter(itemBooking -> itemBooking.getItem().getId().equals(item.getId()))
                 .map(Booking::getStart)
+                .map(LocalDateTime::toLocalDate)
                 .sorted()
                 .toList();
 
-        List<LocalDateTime> itemBookingTimeEnd = bookingRepository.findAll().stream()
+        List<LocalDate> itemBookingTimeEnd = bookings.stream()
                 .filter(itemBooking -> itemBooking.getItem().getId().equals(item.getId()))
                 .map(Booking::getEnd)
+                .map(LocalDateTime::toLocalDate)
                 .sorted(Comparator.reverseOrder())
                 .toList();
 
-        for (LocalDateTime start : itemBookingTimeStart) {
+        for (LocalDate start : itemBookingTimeStart) {
             if (start.isAfter(now)) {
                 nextTime = start;
                 break;
             }
         }
 
-        for (LocalDateTime end : itemBookingTimeEnd) {
-            if (end.isAfter(now)) {
+        for (LocalDate end : itemBookingTimeEnd) {
+            if (end.isBefore(now)) {
                 lastTime = end;
                 break;
             }
@@ -100,6 +108,7 @@ public class ItemMapper {
                 .build();
     }
 
+    @Transactional
     public Item toEntity(ItemDto dto, long ownerId, Long requestId) {
         if  (dto == null) {
             return null;
