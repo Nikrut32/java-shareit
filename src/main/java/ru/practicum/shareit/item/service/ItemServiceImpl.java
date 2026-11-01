@@ -72,7 +72,7 @@ public class ItemServiceImpl implements ItemService {
             throw new ValidationNotObjectException("Ваш пользователь не зарегистрирован");
         }
 
-        Item item = itemMapper.toEntity(itemDto, ownerId, null);
+        Item item = itemMapper.toEntity(itemDto, ownerId, itemDto.getRequestId());
 
         return itemRepository.save(item);
     }

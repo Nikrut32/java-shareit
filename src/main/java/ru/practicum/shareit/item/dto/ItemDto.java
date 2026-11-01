@@ -13,5 +13,6 @@ public class ItemDto implements ItemResponse {
     private String description;
     private Boolean available;
     private Long countRental;
+    private Long requestId;
     private List<CommentDto> comments;
 }

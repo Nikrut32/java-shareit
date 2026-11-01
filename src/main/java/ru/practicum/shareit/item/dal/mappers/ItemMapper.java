@@ -9,7 +9,9 @@ import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemTimeDto;
+import ru.practicum.shareit.item.dto.RequestItemDto;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.dal.mappers.UserMapper;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -24,6 +26,7 @@ public class ItemMapper {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentMapper commentMapper;
+    private final ItemRequestRepository  itemRequestRepository;
 
     @Autowired
     private UserMapper userMapper;
@@ -40,6 +43,7 @@ public class ItemMapper {
                 .description(item.getDescription())
                 .available(item.getAvailable())
                 .countRental(item.getCountRental())
+                .requestId(item.getRequest().getId())
                 .comments(item.getComments().stream().map(commentMapper::toDto).toList())
                 .build();
     }
@@ -121,7 +125,16 @@ public class ItemMapper {
                 .available(dto.getAvailable())
                 .countRental(dto.getCountRental())
                 .owner(userRepository.getReferenceById(ownerId))
-                .request(null)
+                .request(itemRequestRepository.getById(requestId))
+                .build();
+    }
+
+    @Transactional
+    public RequestItemDto toRequestDto(Item item) {
+        return RequestItemDto.builder()
+                .id(item.getId())
+                .name(item.getName())
+                .ownerId(item.getOwner().getId())
                 .build();
     }
 }
